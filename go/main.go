@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"glox/scanner"
 	"log"
 	"os"
 )
@@ -54,20 +55,15 @@ func runFile(file string) {
 }
 
 func run(source string) error {
-	fmt.Println(source)
+	scanner := scanner.NewScanner(source)
+	tokens, err := scanner.ScanTokens()
+	if err != nil {
+		log.Panic(err)
+	}
+
+	for _, token := range tokens {
+		fmt.Print(token.Show())
+	}
+
 	return nil
-}
-
-type syntaxErr struct {
-	line  int
-	msg   string
-	where string
-}
-
-func (e syntaxErr) Error() string {
-	return fmt.Sprintf("[line %d] Error %s: %s ", e.line, e.where, e.msg)
-}
-
-func NewSyntaxErr(line int, where string, msg string) error {
-	return &syntaxErr{line: line, where: where, msg: msg}
 }

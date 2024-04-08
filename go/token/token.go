@@ -21,7 +21,8 @@ func NewToken(
 	tokenType TokenType,
 	lexeme string,
 	literal interface{},
-	line int) Token {
+	line int,
+) Token {
 	return &token{
 		tokenType: tokenType,
 		lexeme:    lexeme,

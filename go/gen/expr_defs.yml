@@ -1,0 +1,36 @@
+exprs:
+  - name: Binary
+    imports:
+      - "glox/expr"
+      - "glox/token"
+    attributes:
+    - name: Left
+      type: expr.Expr
+    - name: Operator
+      type: token.Token
+    - name: Right
+      type: expr.Expr
+  
+  - name: Grouping
+    imports:
+      - "glox/expr"
+    attributes:
+    - name: Expression
+      type: expr.Expr
+  
+  - name: Literal
+    imports:
+      - "glox/expr"
+    attributes:
+    - name: Value
+      type: interface{}
+  
+  - name: Unary
+    imports:
+      - "glox/expr"
+      - "glox/token"
+    attributes:
+    - name: Operator
+      type: token.Token
+    - name: Right
+      type: expr.Expr   

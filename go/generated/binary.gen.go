@@ -1,42 +1,30 @@
 
 // generated code - DO NOT EDIT
-package expr
+package generated
 
 import (
-	
-	"glox/expr"
-	
 	"glox/token"
-	
 )
 
 type Binary struct {
-	expr.Expr
-	
-	Left expr.Expr
-	
+	Expr
+	Left Expr
 	Operator token.Token
-	
-	Right expr.Expr
-	
+	Right Expr
 }
 
 func NewBinary(
-	
-	Left expr.Expr,
-	
+	Left Expr,
 	Operator token.Token,
-	
-	Right expr.Expr,
-	
+	Right Expr,
 ) *Binary {
 	return &Binary{
-		
 		Left: Left,
-		
 		Operator: Operator,
-		
 		Right: Right,
-		
 	}
+}
+
+func (x *Binary) accept(visitor Visitor[any]) any {
+	return visitor.visitBinary(x)
 }

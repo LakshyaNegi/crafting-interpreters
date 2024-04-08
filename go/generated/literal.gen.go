@@ -1,28 +1,23 @@
 
 // generated code - DO NOT EDIT
-package expr
+package generated
 
 import (
-	
-	"glox/expr"
-	
 )
 
 type Literal struct {
-	expr.Expr
-	
+	Expr
 	Value interface{}
-	
 }
 
 func NewLiteral(
-	
 	Value interface{},
-	
 ) *Literal {
 	return &Literal{
-		
 		Value: Value,
-		
 	}
+}
+
+func (x *Literal) accept(visitor Visitor[any]) any {
+	return visitor.visitLiteral(x)
 }

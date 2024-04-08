@@ -4,37 +4,66 @@ import (
 	"html/template"
 	"log"
 	"os"
+	"strings"
 
 	"gopkg.in/yaml.v2"
 )
 
+var templateFuncMap = template.FuncMap{
+	"ToLower": strings.ToLower,
+}
+
+var iVisitorTemplate = template.Must(template.New("iVisitor").Funcs(templateFuncMap).Parse(`
+// generated code - DO NOT EDIT
+package generated
+
+type Visitor[T any] interface {
+	{{- range .Exprs }}
+	visit{{ .Name }} ({{ .Name | ToLower }} Expr) T
+	{{- end }}
+}
+`))
+
+var iExprTemplate = template.Must(template.New("iExpr").Parse(`
+// generated code - DO NOT EDIT
+package generated
+
+type Expr interface {
+	accept(Visitor[any]) any
+}
+`))
+
 var exprTemplate = template.Must(template.New("exprDef").Parse(`
 // generated code - DO NOT EDIT
-package expr
+package generated
 
 import (
-	{{ range .Imports }}
+	{{- range .Imports }}
 	"{{ . }}"
-	{{ end }}
+	{{- end }}
 )
 
 type {{ .Name }} struct {
-	expr.Expr
-	{{ range .Attributes }}
+	Expr
+	{{- range .Attributes }}
 	{{ .Name }} {{ .Type }}
-	{{ end }}
+	{{- end }}
 }
 
 func New{{ .Name }}(
-	{{ range .Attributes }}
+	{{- range .Attributes }}
 	{{ .Name }} {{ .Type }},
-	{{ end }}
+	{{- end }}
 ) *{{ .Name }} {
 	return &{{ .Name }}{
-		{{ range .Attributes }}
+		{{- range .Attributes }}
 		{{ .Name }}: {{ .Name}},
-		{{ end }}
+		{{- end }}
 	}
+}
+
+func (x *{{ .Name }}) accept(visitor Visitor[any]) any {
+	return visitor.visit{{ .Name }}(x)
 }
 `))
 
@@ -67,12 +96,12 @@ func main() {
 		log.Fatalf("error unmarshaling yaml: %v", err)
 	}
 
-	log.Println(data)
-
-	os.MkdirAll("../expr/generated", os.ModePerm)
+	// generate expr defs
+	os.MkdirAll("../generated", os.ModePerm)
 
 	for _, expr := range data.Exprs {
-		out, err := os.Create("../expr/generated/" + expr.Name + ".gen.go")
+		out, err := os.Create("../generated/" +
+			strings.ToLower(expr.Name) + ".gen.go")
 		if err != nil {
 			log.Fatalf("error creating file: %v", err)
 		}
@@ -83,4 +112,29 @@ func main() {
 			log.Fatalf("error while executing template: %v", err)
 		}
 	}
+
+	out, err := os.Create("../generated/" +
+		"expr" + ".gen.go")
+	if err != nil {
+		log.Fatalf("error creating file: %v", err)
+	}
+	defer out.Close()
+
+	err = iExprTemplate.Execute(out, nil)
+	if err != nil {
+		log.Fatalf("error while executing template: %v", err)
+	}
+
+	out, err = os.Create("../generated/" +
+		"visitor" + ".gen.go")
+	if err != nil {
+		log.Fatalf("error creating file: %v", err)
+	}
+	defer out.Close()
+
+	err = iVisitorTemplate.Execute(out, data)
+	if err != nil {
+		log.Fatalf("error while executing template: %v", err)
+	}
+
 }

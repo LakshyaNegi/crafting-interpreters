@@ -1,36 +1,27 @@
 
 // generated code - DO NOT EDIT
-package expr
+package generated
 
 import (
-	
-	"glox/expr"
-	
 	"glox/token"
-	
 )
 
 type Unary struct {
-	expr.Expr
-	
+	Expr
 	Operator token.Token
-	
-	Right expr.Expr
-	
+	Right Expr
 }
 
 func NewUnary(
-	
 	Operator token.Token,
-	
-	Right expr.Expr,
-	
+	Right Expr,
 ) *Unary {
 	return &Unary{
-		
 		Operator: Operator,
-		
 		Right: Right,
-		
 	}
+}
+
+func (x *Unary) accept(visitor Visitor[any]) any {
+	return visitor.visitUnary(x)
 }

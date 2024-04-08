@@ -1,28 +1,23 @@
 
 // generated code - DO NOT EDIT
-package expr
+package generated
 
 import (
-	
-	"glox/expr"
-	
 )
 
 type Grouping struct {
-	expr.Expr
-	
-	Expression expr.Expr
-	
+	Expr
+	Expression Expr
 }
 
 func NewGrouping(
-	
-	Expression expr.Expr,
-	
+	Expression Expr,
 ) *Grouping {
 	return &Grouping{
-		
 		Expression: Expression,
-		
 	}
+}
+
+func (x *Grouping) accept(visitor Visitor[any]) any {
+	return visitor.visitGrouping(x)
 }

@@ -7,7 +7,6 @@ import (
 )
 
 type Binary struct {
-	Expr
 	Left Expr
 	Operator token.Token
 	Right Expr
@@ -18,13 +17,13 @@ func NewBinary(
 	Operator token.Token,
 	Right Expr,
 ) *Binary {
-	return &Binary{
+	return &Binary {
 		Left: Left,
 		Operator: Operator,
 		Right: Right,
 	}
 }
 
-func (x *Binary) accept(visitor Visitor[any]) any {
-	return visitor.visitBinary(x)
+func (x *Binary) Accept(visitor Visitor) interface{} {
+	return visitor.VisitBinary(x)
 }

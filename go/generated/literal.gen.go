@@ -6,18 +6,17 @@ import (
 )
 
 type Literal struct {
-	Expr
 	Value interface{}
 }
 
 func NewLiteral(
 	Value interface{},
 ) *Literal {
-	return &Literal{
+	return &Literal {
 		Value: Value,
 	}
 }
 
-func (x *Literal) accept(visitor Visitor[any]) any {
-	return visitor.visitLiteral(x)
+func (x *Literal) Accept(visitor Visitor) interface{} {
+	return visitor.VisitLiteral(x)
 }

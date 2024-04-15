@@ -3,5 +3,5 @@
 package generated
 
 type Expr interface {
-	accept(Visitor[any]) any
+	Accept(Visitor) interface{}
 }

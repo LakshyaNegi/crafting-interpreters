@@ -6,18 +6,17 @@ import (
 )
 
 type Grouping struct {
-	Expr
 	Expression Expr
 }
 
 func NewGrouping(
 	Expression Expr,
 ) *Grouping {
-	return &Grouping{
+	return &Grouping {
 		Expression: Expression,
 	}
 }
 
-func (x *Grouping) accept(visitor Visitor[any]) any {
-	return visitor.visitGrouping(x)
+func (x *Grouping) Accept(visitor Visitor) interface{} {
+	return visitor.VisitGrouping(x)
 }

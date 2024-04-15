@@ -31,4 +31,4 @@ exprs:
     - name: Operator
       type: token.Token
     - name: Right
-      type: Expr   
+      type: Expr

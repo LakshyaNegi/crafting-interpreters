@@ -4,6 +4,7 @@ import "fmt"
 
 type Token interface {
 	Show() string
+	GetLexeme() string
 }
 
 type token struct {
@@ -15,6 +16,10 @@ type token struct {
 
 func (t *token) Show() string {
 	return fmt.Sprintf("%v : %s : %v\n", t.tokenType, t.lexeme, t.literal)
+}
+
+func (t *token) GetLexeme() string {
+	return t.lexeme
 }
 
 func NewToken(

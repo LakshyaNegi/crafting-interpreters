@@ -2,9 +2,9 @@
 // generated code - DO NOT EDIT
 package generated
 
-type Visitor[T any] interface {
-	visitBinary (binary Expr) T
-	visitGrouping (grouping Expr) T
-	visitLiteral (literal Expr) T
-	visitUnary (unary Expr) T
+type Visitor interface {
+	VisitBinary (binary *Binary) interface{}
+	VisitGrouping (grouping *Grouping) interface{}
+	VisitLiteral (literal *Literal) interface{}
+	VisitUnary (unary *Unary) interface{}
 }

@@ -17,9 +17,9 @@ var iVisitorTemplate = template.Must(template.New("iVisitor").Funcs(templateFunc
 // generated code - DO NOT EDIT
 package generated
 
-type Visitor[T any] interface {
+type Visitor interface {
 	{{- range .Exprs }}
-	visit{{ .Name }} ({{ .Name | ToLower }} Expr) T
+	Visit{{ .Name }} ({{ .Name | ToLower }} *{{ .Name }}) interface{}
 	{{- end }}
 }
 `))
@@ -29,7 +29,7 @@ var iExprTemplate = template.Must(template.New("iExpr").Parse(`
 package generated
 
 type Expr interface {
-	accept(Visitor[any]) any
+	Accept(Visitor) interface{}
 }
 `))
 
@@ -44,7 +44,6 @@ import (
 )
 
 type {{ .Name }} struct {
-	Expr
 	{{- range .Attributes }}
 	{{ .Name }} {{ .Type }}
 	{{- end }}
@@ -55,15 +54,15 @@ func New{{ .Name }}(
 	{{ .Name }} {{ .Type }},
 	{{- end }}
 ) *{{ .Name }} {
-	return &{{ .Name }}{
+	return &{{ .Name }} {
 		{{- range .Attributes }}
 		{{ .Name }}: {{ .Name}},
 		{{- end }}
 	}
 }
 
-func (x *{{ .Name }}) accept(visitor Visitor[any]) any {
-	return visitor.visit{{ .Name }}(x)
+func (x *{{ .Name }}) Accept(visitor Visitor) interface{} {
+	return visitor.Visit{{ .Name }}(x)
 }
 `))
 

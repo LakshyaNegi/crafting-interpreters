@@ -5,6 +5,9 @@ import "fmt"
 type Token interface {
 	Show() string
 	GetLexeme() string
+	GetLiteral() interface{}
+	GetType() TokenType
+	GetLine() int
 }
 
 type token struct {
@@ -20,6 +23,18 @@ func (t *token) Show() string {
 
 func (t *token) GetLexeme() string {
 	return t.lexeme
+}
+
+func (t *token) GetType() TokenType {
+	return t.tokenType
+}
+
+func (t *token) GetLiteral() interface{} {
+	return t.literal
+}
+
+func (t *token) GetLine() int {
+	return t.line
 }
 
 func NewToken(

@@ -3,6 +3,8 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"glox/ast"
+	"glox/parser"
 	"glox/scanner"
 	"log"
 	"os"
@@ -61,9 +63,19 @@ func run(source string) error {
 		log.Panic(err)
 	}
 
-	for _, token := range tokens {
-		fmt.Print(token.Show())
+	// for _, token := range tokens {
+	// 	fmt.Print(token.Show())
+	// }
+
+	parser := parser.NewParser(tokens)
+	expr, err := parser.Parse()
+	if err != nil {
+		return nil
 	}
+
+	printer := ast.NewPrinter()
+
+	fmt.Printf("%v\n", printer.Print(expr))
 
 	return nil
 }

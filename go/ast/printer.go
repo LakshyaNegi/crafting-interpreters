@@ -23,6 +23,10 @@ func (p *printer) VisitBinary(expr *generated.Binary) interface{} {
 	return p.parenthesize(expr.Operator.GetLexeme(), expr.Left, expr.Right)
 }
 
+func (p *printer) VisitTernary(expr *generated.Ternary) interface{} {
+	return p.parenthesize("ternary", expr.Condition, expr.ValueTrue, expr.ValueFalse)
+}
+
 func (p *printer) VisitGrouping(expr *generated.Grouping) interface{} {
 	return p.parenthesize("group", expr.Expression)
 }

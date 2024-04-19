@@ -29,7 +29,32 @@ func (p *parser) Parse() (generated.Expr, error) {
 }
 
 func (p *parser) expression() (generated.Expr, error) {
-	return p.equality()
+	return p.ternary()
+}
+
+func (p *parser) ternary() (generated.Expr, error) {
+	expr, err := p.equality()
+	if err != nil {
+		return nil, err
+	}
+
+	for p.match(token.QUESTION) {
+		exprTrue, err := p.expression()
+		if err != nil {
+			return nil, err
+		}
+
+		p.consume(token.COLON, "Expect : after expression in ternary operation")
+
+		exprFalse, err := p.expression()
+		if err != nil {
+			return nil, err
+		}
+
+		expr = generated.NewTernary(expr, exprTrue, exprFalse)
+	}
+
+	return expr, nil
 }
 
 func (p *parser) equality() (generated.Expr, error) {

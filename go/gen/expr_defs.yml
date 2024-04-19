@@ -9,6 +9,17 @@ exprs:
       type: token.Token
     - name: Right
       type: Expr
+
+  - name: Ternary
+    imports:
+    
+    attributes:
+      - name: Condition
+        type: Expr
+      - name: ValueTrue
+        type: Expr
+      - name: ValueFalse
+        type: Expr
   
   - name: Grouping
     imports:

@@ -26,6 +26,10 @@ var (
 	LESS          TokenType = "LESS"
 	LESS_EQUAL    TokenType = "LESS_EQUAL"
 
+	//Conditional
+	QUESTION TokenType = "?"
+	COLON    TokenType = ":"
+
 	// Literals.
 	IDENTIFIER TokenType = "IDENTIFIER"
 	STRING     TokenType = "STRING"

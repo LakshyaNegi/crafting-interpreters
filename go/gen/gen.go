@@ -19,7 +19,7 @@ package generated
 
 type Visitor interface {
 	{{- range .Exprs }}
-	Visit{{ .Name }} ({{ .Name | ToLower }} *{{ .Name }}) interface{}
+	Visit{{ .Name }} ({{ .Name | ToLower }} *{{ .Name }}) (interface{}, error)
 	{{- end }}
 }
 `))
@@ -29,7 +29,7 @@ var iExprTemplate = template.Must(template.New("iExpr").Parse(`
 package generated
 
 type Expr interface {
-	Accept(Visitor) interface{}
+	Accept(Visitor) (interface{}, error)
 }
 `))
 
@@ -61,7 +61,7 @@ func New{{ .Name }}(
 	}
 }
 
-func (x *{{ .Name }}) Accept(visitor Visitor) interface{} {
+func (x *{{ .Name }}) Accept(visitor Visitor) (interface{}, error) {
 	return visitor.Visit{{ .Name }}(x)
 }
 `))

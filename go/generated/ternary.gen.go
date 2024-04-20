@@ -23,6 +23,6 @@ func NewTernary(
 	}
 }
 
-func (x *Ternary) Accept(visitor Visitor) interface{} {
+func (x *Ternary) Accept(visitor Visitor) (interface{}, error) {
 	return visitor.VisitTernary(x)
 }

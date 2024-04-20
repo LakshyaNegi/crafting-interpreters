@@ -1,7 +1,7 @@
 package scanner
 
 import (
-	"glox/err"
+	"glox/lerr"
 	"glox/token"
 	"strconv"
 )
@@ -122,7 +122,7 @@ func (s *scanner) scanToken() error {
 			s.idenScan()
 		} else {
 
-			return err.NewSyntaxErr(s.line, "", "Unexpected character.")
+			return lerr.NewSyntaxErr(s.line, "", "Unexpected character.")
 		}
 	}
 

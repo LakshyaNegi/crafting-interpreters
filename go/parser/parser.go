@@ -2,8 +2,9 @@ package parser
 
 import (
 	"fmt"
-	"glox/err"
+
 	"glox/generated"
+	"glox/lerr"
 	"glox/token"
 )
 
@@ -14,7 +15,7 @@ type Parser interface {
 type parser struct {
 	tokens []token.Token
 	curr   int
-	perr   err.ParseErr
+	perr   lerr.ParseErr
 }
 
 func NewParser(tokens []token.Token) Parser {
@@ -186,14 +187,14 @@ func (p *parser) consume(t token.TokenType, msg string) (token.Token, error) {
 		fmt.Print(serr.Error())
 	}
 
-	return nil, err.NewParseErr()
+	return nil, lerr.NewParseErr()
 }
 
 func (p *parser) perror(t token.Token, msg string) error {
 	if t.GetType() == token.EOF {
-		return err.NewSyntaxErr(p.peek().GetLine(), " at end", msg)
+		return lerr.NewSyntaxErr(p.peek().GetLine(), " at end", msg)
 	} else {
-		return err.NewSyntaxErr(p.peek().GetLine(), " at end", msg)
+		return lerr.NewSyntaxErr(p.peek().GetLine(), " at end", msg)
 	}
 }
 

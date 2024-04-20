@@ -3,7 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"glox/ast"
+	"glox/interpreter"
 	"glox/parser"
 	"glox/scanner"
 	"log"
@@ -73,9 +73,11 @@ func run(source string) error {
 		return nil
 	}
 
-	printer := ast.NewPrinter()
+	fmt.Println(expr)
 
-	fmt.Printf("%v\n", printer.Print(expr))
+	interpreter := interpreter.NewInterpreter()
+
+	interpreter.Interpret(expr)
 
 	return nil
 }

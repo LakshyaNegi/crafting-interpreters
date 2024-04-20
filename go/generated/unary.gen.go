@@ -21,6 +21,6 @@ func NewUnary(
 	}
 }
 
-func (x *Unary) Accept(visitor Visitor) interface{} {
+func (x *Unary) Accept(visitor Visitor) (interface{}, error) {
 	return visitor.VisitUnary(x)
 }

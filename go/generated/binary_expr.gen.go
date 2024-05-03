@@ -24,6 +24,6 @@ func NewBinary(
 	}
 }
 
-func (x *Binary) Accept(visitor Visitor) (interface{}, error) {
+func (x *Binary) Accept(visitor VisitorExpr) (interface{}, error) {
 	return visitor.VisitBinary(x)
 }

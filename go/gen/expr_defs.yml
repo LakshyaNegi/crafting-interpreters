@@ -1,4 +1,25 @@
+name: Expr
 exprs:
+  - name: Assign
+    imports:
+      - "glox/token"
+    attributes:
+    - name: Name
+      type: token.Token
+    - name: Value
+      type: Expr
+  
+  - name: Logical
+    imports:
+      - "glox/token"
+    attributes:
+    - name: Left
+      type: Expr
+    - name: Operator
+      type: token.Token
+    - name: Right
+      type: Expr
+      
   - name: Binary
     imports:
       - "glox/token"
@@ -43,3 +64,10 @@ exprs:
       type: token.Token
     - name: Right
       type: Expr
+
+  - name: VarExpr
+    imports:
+      - "glox/token"
+    attributes:
+    - name: Name
+      type: token.Token

@@ -17,6 +17,6 @@ func NewGrouping(
 	}
 }
 
-func (x *Grouping) Accept(visitor Visitor) (interface{}, error) {
+func (x *Grouping) Accept(visitor VisitorExpr) (interface{}, error) {
 	return visitor.VisitGrouping(x)
 }

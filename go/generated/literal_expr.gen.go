@@ -17,6 +17,6 @@ func NewLiteral(
 	}
 }
 
-func (x *Literal) Accept(visitor Visitor) (interface{}, error) {
+func (x *Literal) Accept(visitor VisitorExpr) (interface{}, error) {
 	return visitor.VisitLiteral(x)
 }

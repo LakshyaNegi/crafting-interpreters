@@ -1,0 +1,46 @@
+name: Stmt
+stmts:
+  - name: BlockStmt
+    imports:
+    attributes:
+    - name: Statements
+      type: "[]Stmt"
+
+  - name: IfStmt
+    imports:
+    attributes:
+    - name: Condition
+      type: Expr
+    - name: IfBranch
+      type: Stmt
+    - name: ElseBranch
+      type: Stmt
+
+  - name: WhileStmt
+    imports:
+    attributes:
+    - name: Condition
+      type: Expr
+    - name: Stmt
+      type: Stmt
+
+  - name: ExprStmt
+    imports:
+    attributes:
+    - name: Expr
+      type: Expr
+
+  - name: PrintStmt
+    imports:
+    attributes:
+    - name: Expr
+      type: Expr
+
+  - name: VarStmt
+    imports:
+      - "glox/token"
+    attributes:
+    - name: Name
+      type: token.Token
+    - name: Initializer
+      type: Expr

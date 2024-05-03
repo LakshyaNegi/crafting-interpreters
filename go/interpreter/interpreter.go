@@ -2,6 +2,7 @@ package interpreter
 
 import (
 	"fmt"
+	"glox/environment"
 	"glox/generated"
 	"glox/lerr"
 	"glox/token"
@@ -10,24 +11,159 @@ import (
 )
 
 type Interpreter interface {
-	Interpret(generated.Expr)
+	Interpret([]generated.Stmt)
+	ExprStmtVisitor
+}
+
+type ExprStmtVisitor interface {
+	generated.VisitorExpr
+	generated.VisitorStmt
 }
 
 type interpreter struct {
+	Env *environment.Environment
 }
 
 func NewInterpreter() Interpreter {
-	return &interpreter{}
+	return &interpreter{
+		Env: environment.NewEnvironment(nil),
+	}
 }
 
-func (i *interpreter) Interpret(expr generated.Expr) {
-	value, err := i.evaluate(expr)
-	if err != nil {
-		fmt.Printf("Error while interpreting : %v\n", err)
-		os.Exit(70)
+func (i *interpreter) Interpret(stmts []generated.Stmt) {
+	for _, stmt := range stmts {
+		_, err := i.execute(stmt)
+		if err != nil {
+			fmt.Printf("Error while interpreting : %v\n", err)
+			os.Exit(70)
+		}
+	}
+}
+
+func (i *interpreter) execute(stmt generated.Stmt) (interface{}, error) {
+	return stmt.Accept(i)
+}
+
+func (i *interpreter) executeBlock(stmts []generated.Stmt, Env *environment.Environment) (interface{}, error) {
+	previousEnv := i.Env
+	defer func(pre *environment.Environment) {
+		i.Env = pre
+	}(previousEnv)
+
+	i.Env = Env
+
+	for _, stmt := range stmts {
+		_, err := i.execute(stmt)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	fmt.Printf("%v\n", i.stringify(value))
+	return nil, nil
+}
+
+func (i *interpreter) VisitExprStmt(exprstmt *generated.ExprStmt) (interface{}, error) {
+	return i.evaluate(exprstmt.Expr)
+}
+
+func (i *interpreter) VisitIfStmt(ifstmt *generated.IfStmt) (interface{}, error) {
+	val, err := i.evaluate(ifstmt.Condition)
+	if err != nil {
+		return nil, err
+	}
+
+	if i.isTruthy(val) {
+		return ifstmt.IfBranch, nil
+	} else if ifstmt.ElseBranch != nil {
+		return ifstmt.ElseBranch, nil
+	}
+
+	return nil, nil
+}
+
+func (i *interpreter) VisitPrintStmt(printstmt *generated.PrintStmt) (interface{}, error) {
+	value, err := i.evaluate(printstmt.Expr)
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Printf("%s\n", i.stringify(value))
+
+	return nil, nil
+}
+
+func (i *interpreter) VisitBlockStmt(blockstmt *generated.BlockStmt) (interface{}, error) {
+	_, err := i.executeBlock(blockstmt.Statements, environment.NewEnvironment(i.Env))
+	if err != nil {
+		return nil, err
+	}
+
+	return nil, nil
+}
+
+func (i *interpreter) VisitWhileStmt(whilestmt *generated.WhileStmt) (interface{}, error) {
+	c, err := i.evaluate(whilestmt.Condition)
+	if err != nil {
+		return nil, err
+	}
+
+	for i.isTruthy(c) {
+		c, err = i.evaluate(whilestmt.Condition)
+		if err != nil {
+			return nil, err
+		}
+
+		_, err := i.execute(whilestmt.Stmt)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return nil, nil
+}
+
+func (i *interpreter) VisitVarStmt(varstmt *generated.VarStmt) (interface{}, error) {
+	var value interface{}
+	var err error
+
+	if varstmt.Initializer != nil {
+		value, err = i.evaluate(varstmt.Initializer)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	i.Env.Define(varstmt.Name.GetLexeme(), value)
+	return nil, nil
+}
+
+func (i *interpreter) VisitAssign(assign *generated.Assign) (interface{}, error) {
+	value, err := i.evaluate(assign.Value)
+	if err != nil {
+		return nil, err
+	}
+
+	i.Env.Assign(assign.Name, value)
+	return value, nil
+}
+
+func (i *interpreter) VisitLogical(logical *generated.Logical) (interface{}, error) {
+	left, err := i.evaluate(logical.Left)
+	if err != nil {
+		return nil, err
+	}
+
+	if logical.Operator.GetType() == token.OR {
+		if i.isTruthy(left) {
+			return left, nil
+		}
+	} else {
+		if !i.isTruthy(left) {
+			return left, nil
+		}
+	}
+
+	return i.evaluate(logical.Right)
 }
 
 func (i *interpreter) VisitBinary(binary *generated.Binary) (interface{}, error) {
@@ -161,6 +297,15 @@ func (i *interpreter) VisitUnary(unary *generated.Unary) (interface{}, error) {
 	}
 
 	return nil, nil
+}
+
+func (i *interpreter) VisitVarExpr(varexpr *generated.VarExpr) (interface{}, error) {
+	value, err := i.Env.Get(varexpr.Name)
+	if err != nil {
+		return nil, err
+	}
+
+	return value, nil
 }
 
 func (i *interpreter) evaluate(expr generated.Expr) (interface{}, error) {

@@ -73,7 +73,7 @@ func run(source string) error {
 		return nil
 	}
 
-	fmt.Println(expr)
+	// fmt.Printf("%v\n", expr)
 
 	interpreter := interpreter.NewInterpreter()
 

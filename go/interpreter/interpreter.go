@@ -13,6 +13,8 @@ import (
 type Interpreter interface {
 	Interpret([]generated.Stmt)
 	ExprStmtVisitor
+	GetGlobalEnv() *environment.Environment
+	ExecuteBlock([]generated.Stmt, *environment.Environment) (interface{}, error)
 }
 
 type ExprStmtVisitor interface {
@@ -21,13 +23,30 @@ type ExprStmtVisitor interface {
 }
 
 type interpreter struct {
-	Env *environment.Environment
+	GlobalEnv *environment.Environment
+	Env       *environment.Environment
 }
 
 func NewInterpreter() Interpreter {
-	return &interpreter{
-		Env: environment.NewEnvironment(nil),
+	g := environment.NewEnvironment(nil)
+
+	g.Define("clock", &clock{})
+
+	in := &interpreter{
+		GlobalEnv: g,
 	}
+
+	in.Env = in.GlobalEnv
+
+	return in
+}
+
+func (i *interpreter) GetGlobalEnv() *environment.Environment {
+	return i.GlobalEnv
+}
+
+func (i *interpreter) ExecuteBlock(stmts []generated.Stmt, Env *environment.Environment) (interface{}, error) {
+	return i.executeBlock(stmts, Env)
 }
 
 func (i *interpreter) Interpret(stmts []generated.Stmt) {
@@ -62,6 +81,20 @@ func (i *interpreter) executeBlock(stmts []generated.Stmt, Env *environment.Envi
 	return nil, nil
 }
 
+func (i *interpreter) VisitReturnStmt(returnstmt *generated.ReturnStmt) (interface{}, error) {
+	var value interface{}
+	var err error
+
+	if returnstmt.Value != nil {
+		value, err = i.evaluate(returnstmt.Value)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return value, &Return{Value: value}
+}
+
 func (i *interpreter) VisitExprStmt(exprstmt *generated.ExprStmt) (interface{}, error) {
 	return i.evaluate(exprstmt.Expr)
 }
@@ -73,9 +106,9 @@ func (i *interpreter) VisitIfStmt(ifstmt *generated.IfStmt) (interface{}, error)
 	}
 
 	if i.isTruthy(val) {
-		return ifstmt.IfBranch, nil
+		return i.execute(ifstmt.IfBranch)
 	} else if ifstmt.ElseBranch != nil {
-		return ifstmt.ElseBranch, nil
+		return i.execute(ifstmt.ElseBranch)
 	}
 
 	return nil, nil
@@ -137,6 +170,12 @@ func (i *interpreter) VisitVarStmt(varstmt *generated.VarStmt) (interface{}, err
 	return nil, nil
 }
 
+func (i *interpreter) VisitFunctionStmt(funstmt *generated.FunctionStmt) (interface{}, error) {
+	function := &fun{Declaration: funstmt}
+	i.Env.Define(funstmt.Name.GetLexeme(), function)
+	return nil, nil
+}
+
 func (i *interpreter) VisitAssign(assign *generated.Assign) (interface{}, error) {
 	value, err := i.evaluate(assign.Value)
 	if err != nil {
@@ -164,6 +203,34 @@ func (i *interpreter) VisitLogical(logical *generated.Logical) (interface{}, err
 	}
 
 	return i.evaluate(logical.Right)
+}
+
+func (i *interpreter) VisitCall(call *generated.Call) (interface{}, error) {
+	callee, err := i.evaluate(call.Callee)
+	if err != nil {
+		return nil, err
+	}
+
+	args := make([]interface{}, 0)
+	for _, arg := range call.Arguments {
+		value, err := i.evaluate(arg)
+		if err != nil {
+			return nil, err
+		}
+
+		args = append(args, value)
+	}
+
+	function, ok := (callee).(LoxCallable)
+	if !ok {
+		return nil, lerr.NewRuntimeErr(call.Paren, "Can only call functions and classes.")
+	}
+
+	if len(args) != function.Arity() {
+		return nil, lerr.NewRuntimeErr(call.Paren, fmt.Sprintf("Expected %d arguments but got %d.", function.Arity(), len(args)))
+	}
+
+	return function.Call(i, args)
 }
 
 func (i *interpreter) VisitBinary(binary *generated.Binary) (interface{}, error) {

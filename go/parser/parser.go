@@ -46,9 +46,58 @@ func (p *parser) declaration() (generated.Stmt, error) {
 		}
 
 		return vd, nil
+	} else if p.match(token.FUN) {
+		fun, err := p.funDeclaration("function")
+		if err != nil {
+			p.synchronize()
+			return nil, nil
+		}
+
+		return fun, nil
 	}
 
 	return p.statement()
+}
+
+func (p *parser) funDeclaration(kind string) (generated.Stmt, error) {
+	name, err := p.consume(token.IDENTIFIER, "Expect "+kind+" name.")
+	if err != nil {
+		return nil, err
+	}
+
+	p.consume(token.LEFT_PAREN, "Expect '(' after function name.")
+
+	params := []token.Token{}
+	if !p.check(token.RIGHT_PAREN) {
+		for {
+			if len(params) >= 255 {
+				p.perror(p.peek(), "Cannot have more than 255 parameters.")
+				return nil, lerr.NewParseErr()
+			}
+
+			param, err := p.consume(token.IDENTIFIER, "Expect parameter name.")
+			if err != nil {
+				return nil, err
+			}
+
+			params = append(params, param)
+
+			if !p.match(token.COMMA) {
+				break
+			}
+		}
+	}
+
+	p.consume(token.RIGHT_PAREN, "Expect ')' after parameters.")
+
+	p.consume(token.LEFT_BRACE, "Expect '{' before "+kind+" body.")
+
+	body, err := p.blockStmt()
+	if err != nil {
+		return nil, err
+	}
+
+	return generated.NewFunctionStmt(name, params, body), nil
 }
 
 func (p *parser) varDeclaration() (generated.Stmt, error) {
@@ -79,8 +128,10 @@ func (p *parser) statement() (generated.Stmt, error) {
 		return p.printStmt()
 	} else if p.match(token.WHILE) {
 		return p.whileStmt()
+	} else if p.match(token.RETURN) {
+		return p.returnStmt()
 	} else if p.match(token.LEFT_BRACE) {
-		block, err := p.blockstmt()
+		block, err := p.blockStmt()
 		if err != nil {
 			return nil, err
 		}
@@ -91,7 +142,23 @@ func (p *parser) statement() (generated.Stmt, error) {
 	return p.expressionStmt()
 }
 
-func (p *parser) blockstmt() ([]generated.Stmt, error) {
+func (p *parser) returnStmt() (generated.Stmt, error) {
+	keyword := p.previous()
+
+	var value generated.Expr = nil
+	if !p.check(token.SEMICOLON) {
+		value, _ = p.expression()
+	}
+
+	_, err := p.consume(token.SEMICOLON, "Expect ; after return value.")
+	if err != nil {
+		return nil, err
+	}
+
+	return generated.NewReturnStmt(keyword, value), nil
+}
+
+func (p *parser) blockStmt() ([]generated.Stmt, error) {
 	stmts := []generated.Stmt{}
 
 	for !p.check(token.RIGHT_BRACE) && !p.isAtEnd() {
@@ -115,7 +182,7 @@ func (p *parser) ifStmt() (generated.Stmt, error) {
 		return nil, err
 	}
 
-	p.consume(token.LEFT_PAREN, "Expect ')' after if condition.")
+	p.consume(token.RIGHT_PAREN, "Expect ')' after if condition.")
 
 	thenBranch, err := p.statement()
 	if err != nil {
@@ -417,7 +484,56 @@ func (p *parser) unary() (generated.Expr, error) {
 		return generated.NewUnary(operator, right), nil
 	}
 
-	return p.primary()
+	return p.call()
+}
+
+func (p *parser) call() (generated.Expr, error) {
+	expr, err := p.primary()
+	if err != nil {
+		return nil, err
+	}
+
+	for {
+		if p.match(token.LEFT_PAREN) {
+			expr, err = p.finishCall(expr)
+			if err != nil {
+				return nil, err
+			}
+
+		} else {
+			break
+		}
+	}
+
+	return expr, nil
+}
+
+func (p *parser) finishCall(callee generated.Expr) (generated.Expr, error) {
+	args := []generated.Expr{}
+
+	if !p.check(token.RIGHT_PAREN) {
+		for {
+			if len(args) >= 255 {
+				p.perror(p.peek(), "Cannot have more than 255 arguments.")
+				return nil, lerr.NewParseErr()
+			}
+
+			arg, err := p.expression()
+			if err != nil {
+				return nil, err
+			}
+
+			args = append(args, arg)
+
+			if !p.match(token.COMMA) {
+				break
+			}
+		}
+	}
+
+	p.consume(token.RIGHT_PAREN, "Expect ')' after arguments.")
+
+	return generated.NewCall(callee, p.previous(), args), nil
 }
 
 func (p *parser) primary() (generated.Expr, error) {

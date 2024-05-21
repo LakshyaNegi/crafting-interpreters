@@ -9,4 +9,6 @@ type VisitorStmt interface {
 	VisitExprStmt (exprstmt *ExprStmt) (interface{}, error)
 	VisitPrintStmt (printstmt *PrintStmt) (interface{}, error)
 	VisitVarStmt (varstmt *VarStmt) (interface{}, error)
+	VisitFunctionStmt (functionstmt *FunctionStmt) (interface{}, error)
+	VisitReturnStmt (returnstmt *ReturnStmt) (interface{}, error)
 }

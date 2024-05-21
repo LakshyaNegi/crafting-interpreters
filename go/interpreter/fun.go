@@ -9,6 +9,7 @@ var _ LoxCallable = (*fun)(nil)
 
 type fun struct {
 	Declaration *generated.FunctionStmt
+	Closure     *environment.Environment
 }
 
 func (f fun) Arity() int {
@@ -16,7 +17,8 @@ func (f fun) Arity() int {
 }
 
 func (f fun) Call(in Interpreter, args []interface{}) (interface{}, error) {
-	env := environment.NewEnvironment(in.GetGlobalEnv())
+	env := environment.NewEnvironment(f.Closure)
+
 	for i, param := range f.Declaration.Params {
 		env.Define(param.GetLexeme(), args[i])
 	}

@@ -171,7 +171,7 @@ func (i *interpreter) VisitVarStmt(varstmt *generated.VarStmt) (interface{}, err
 }
 
 func (i *interpreter) VisitFunctionStmt(funstmt *generated.FunctionStmt) (interface{}, error) {
-	function := &fun{Declaration: funstmt}
+	function := &fun{Declaration: funstmt, Closure: i.Env}
 	i.Env.Define(funstmt.Name.GetLexeme(), function)
 	return nil, nil
 }

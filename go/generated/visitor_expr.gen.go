@@ -10,5 +10,6 @@ type VisitorExpr interface {
 	VisitGrouping (grouping *Grouping) (interface{}, error)
 	VisitLiteral (literal *Literal) (interface{}, error)
 	VisitUnary (unary *Unary) (interface{}, error)
+	VisitCall (call *Call) (interface{}, error)
 	VisitVarExpr (varexpr *VarExpr) (interface{}, error)
 }

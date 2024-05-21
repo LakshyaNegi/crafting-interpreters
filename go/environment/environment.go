@@ -6,12 +6,6 @@ import (
 	"glox/token"
 )
 
-// type Environment interface {
-// 	Define(name string, value interface{})
-// 	Get(name token.Token) (interface{}, error)
-// 	Assign(name token.Token, value interface{}) error
-// }
-
 type Environment struct {
 	enclosing *Environment
 	values    map[string]interface{}

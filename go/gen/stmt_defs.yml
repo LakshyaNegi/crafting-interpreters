@@ -44,3 +44,23 @@ stmts:
       type: token.Token
     - name: Initializer
       type: Expr
+  
+  - name: FunctionStmt
+    imports:
+      - "glox/token"
+    attributes:
+    - name: Name
+      type: token.Token
+    - name: Params
+      type: "[]token.Token"
+    - name: Body
+      type: "[]Stmt"
+
+  - name: ReturnStmt
+    imports:
+      - "glox/token"
+    attributes:
+    - name: Keyword
+      type: token.Token
+    - name: Value
+      type: Expr

@@ -65,6 +65,17 @@ exprs:
     - name: Right
       type: Expr
 
+  - name: Call
+    imports:
+      - "glox/token"
+    attributes:
+    - name: Callee
+      type: Expr
+    - name: Paren
+      type: token.Token
+    - name: Arguments
+      type: "[]Expr"
+
   - name: VarExpr
     imports:
       - "glox/token"

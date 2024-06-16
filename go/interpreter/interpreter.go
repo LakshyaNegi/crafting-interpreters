@@ -12,19 +12,17 @@ import (
 
 type Interpreter interface {
 	Interpret([]generated.Stmt)
-	ExprStmtVisitor
 	GetGlobalEnv() *environment.Environment
-	ExecuteBlock([]generated.Stmt, *environment.Environment) (interface{}, error)
-}
-
-type ExprStmtVisitor interface {
 	generated.VisitorExpr
 	generated.VisitorStmt
+	Resolve(generated.Expr, int)
+	ExecuteBlock([]generated.Stmt, *environment.Environment) (interface{}, error)
 }
 
 type interpreter struct {
 	GlobalEnv *environment.Environment
 	Env       *environment.Environment
+	Locals    map[generated.Expr]int
 }
 
 func NewInterpreter() Interpreter {
@@ -47,6 +45,10 @@ func (i *interpreter) GetGlobalEnv() *environment.Environment {
 
 func (i *interpreter) ExecuteBlock(stmts []generated.Stmt, Env *environment.Environment) (interface{}, error) {
 	return i.executeBlock(stmts, Env)
+}
+
+func (i *interpreter) Resolve(expr generated.Expr, depth int) {
+	i.Locals[expr] = depth
 }
 
 func (i *interpreter) Interpret(stmts []generated.Stmt) {
@@ -182,7 +184,12 @@ func (i *interpreter) VisitAssign(assign *generated.Assign) (interface{}, error)
 		return nil, err
 	}
 
-	i.Env.Assign(assign.Name, value)
+	dist, ok := i.Locals[assign]
+	if ok {
+		i.Env.AssignAt(dist, assign.Name, value)
+	} else {
+		i.GlobalEnv.Assign(assign.Name, value)
+	}
 	return value, nil
 }
 
@@ -367,12 +374,16 @@ func (i *interpreter) VisitUnary(unary *generated.Unary) (interface{}, error) {
 }
 
 func (i *interpreter) VisitVarExpr(varexpr *generated.VarExpr) (interface{}, error) {
-	value, err := i.Env.Get(varexpr.Name)
-	if err != nil {
-		return nil, err
+	return i.lookUpVariable(varexpr.Name, varexpr)
+}
+
+func (i *interpreter) lookUpVariable(name token.Token, expr generated.Expr) (interface{}, error) {
+	distance, ok := i.Locals[expr]
+	if ok {
+		return i.Env.GetAt(distance, name.GetLexeme())
 	}
 
-	return value, nil
+	return i.GlobalEnv.Get(name)
 }
 
 func (i *interpreter) evaluate(expr generated.Expr) (interface{}, error) {

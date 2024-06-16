@@ -49,3 +49,34 @@ func (e *Environment) Assign(name token.Token, value interface{}) error {
 	return lerr.NewRuntimeErr(name,
 		fmt.Sprintf("Undefined variable %s", name.GetLexeme()))
 }
+
+func (e *Environment) GetAt(distance int, name string) (interface{}, error) {
+	env := e.ancestor(distance)
+	val, ok := env.values[name]
+	if ok {
+		return val, nil
+	}
+
+	return nil, lerr.NewRuntimeErr(
+		nil, fmt.Sprintf("Undefined variable '%s'.", name))
+}
+
+func (e *Environment) ancestor(distance int) *Environment {
+	env := e
+	for i := 0; i < distance; i++ {
+		env = env.enclosing
+	}
+
+	return env
+}
+
+func (e *Environment) AssignAt(distance int, name token.Token, value interface{}) error {
+	env := e.ancestor(distance)
+	if _, ok := env.values[name.GetLexeme()]; ok {
+		env.values[name.GetLexeme()] = value
+		return nil
+	}
+
+	return lerr.NewRuntimeErr(
+		name, fmt.Sprintf("Undefined variable '%s'.", name.GetLexeme()))
+}

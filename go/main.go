@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"glox/interpreter"
 	"glox/parser"
+	"glox/resolver"
 	"glox/scanner"
 	"log"
 	"os"
@@ -63,21 +64,21 @@ func run(source string) error {
 		log.Panic(err)
 	}
 
-	// for _, token := range tokens {
-	// 	fmt.Print(token.Show())
-	// }
-
 	parser := parser.NewParser(tokens)
-	expr, err := parser.Parse()
+	stmts, err := parser.Parse()
 	if err != nil {
 		return nil
 	}
 
-	// fmt.Printf("%v\n", expr)
-
 	interpreter := interpreter.NewInterpreter()
+	resolver := resolver.NewResolver(interpreter)
 
-	interpreter.Interpret(expr)
+	err = resolver.Resolve(stmts)
+	if err != nil {
+		return err
+	}
+
+	interpreter.Interpret(stmts)
 
 	return nil
 }
